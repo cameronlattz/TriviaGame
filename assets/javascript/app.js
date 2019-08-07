@@ -1,5 +1,5 @@
 const app = (function() {
-    const questionDuration = 60;
+    let questionDuration = 60;
 
     let questions = [];
     let currentQuestion = 0;
@@ -8,9 +8,13 @@ const app = (function() {
     const convertToMinutesAndSeconds = function(timer) {
         minutes = parseInt(timer / 60, 10)
         seconds = parseInt(timer % 60, 10);
-        seconds = seconds < 10 ? "0" + seconds : seconds;
         const timerDiv = document.getElementById("timer");
-        timerDiv.textContent = minutes + ":" + seconds;
+        if (seconds >= 10 || minutes > 0) {
+            seconds = seconds < 10 ? "0" + seconds : seconds;
+            timerDiv.textContent = minutes + ":" + seconds;
+        } else {
+            timerDiv.textContent = seconds;
+        }
         timerDiv.style.width = (100 * timer/questionDuration) + "%";
         return [minutes, seconds];
     }
@@ -58,17 +62,30 @@ const app = (function() {
                 document.getElementById("textContainer").append(containerElement);
             }
             document.getElementById("textContainer").innerHTML += "<input type=\"button\" id=\"continueButton\" value=\"Try Again?\">";
+            document.getElementById("continueButton").addEventListener("click", function() {
+                location.reload();
+            });
         } else {
             currentQuestion++;
             updateQuestion();
         }
     };
-    const getQuestions = function(amount, difficulty) {
-        fetch("https://opentdb.com/api.php?amount=" + amount + "&category=9&difficulty=" + difficulty + "&type=multiple")
+    const getQuestions = function(amount, difficulty, category) {
+        document.getElementById("loadingContainer").style.display = "block";
+        document.getElementById("textContainer").style.display = "none";
+        let url = "https://opentdb.com/api.php?amount=" + amount;
+        if (category !== "any") {
+            url += "&category=" + category;
+        }
+        if (difficulty !== "any") {
+            url += "&difficulty=" + difficulty;
+        }
+        url += "&type=multiple";
+        fetch(url)
         .then(function(response) {
             return response.json();
         }).then(function(responseJson) {
-            document.getElementById("textContainer").style.display = "none";
+            document.getElementById("loadingContainer").style.display = "none";
             document.getElementById("questionContainer").style.display = "block";
             for (let i = 0; i < responseJson.results.length; i++) {
                 const result = responseJson.results[i];
@@ -77,7 +94,7 @@ const app = (function() {
                     correct_answer: result.correct_answer,
                     incorrect_answers: result.incorrect_answers
                 };
-                const answers = question.incorrect_answers;
+                const answers = question.incorrect_answers.slice();
                 answers.push(question.correct_answer);
                 shuffleArray(answers);
                 question.answers = answers;
@@ -94,7 +111,11 @@ const app = (function() {
         }
     };
     const startGame = function() {
-        getQuestions(2, "easy");
+        const questionCount = parseInt(document.getElementById("numberOfQuestions").value);
+        const difficulty = document.getElementById("difficulty").value;
+        const category = document.getElementById("category").value;
+        questionDuration = parseInt(document.getElementById("seconds").value);
+        getQuestions(questionCount, difficulty, category);
     };
     const startTimer = function(duration) {
         let timer = duration, minutes, seconds;
@@ -102,17 +123,18 @@ const app = (function() {
         convertToMinutesAndSeconds(questionDuration);
         timerInterval = setInterval(function () {
             [minutes, seconds] = convertToMinutesAndSeconds(timer);
-            if (timer === 10) {
+            if (timer === Math.ceil(questionDuration / 4)) {
                 document.getElementById("timer").classList.add("running-out");
             }
             if (--timer < 0) {
                 timer = duration;
+                clickAnswer();
             }
         }, 1000);
     };
     const updateQuestion = function() {
         const question = questions[currentQuestion];
-        document.getElementById("question").innerHTML = question.question;
+        document.getElementById("question").innerHTML = (currentQuestion + 1) + ") " + question.question;
         correctIndex = question.answers.indexOf(question.correct_answer);
         const answerElements = document.getElementById("answers").querySelectorAll("li");
         for (let i = 0; i < answerElements.length; i++) {
