@@ -54,3 +54,34 @@ body {
 #timer.running-out {
     background-color: #d32f2f;
 }
+#questionContainer {
+    display: none;
+}
+li.guessed {
+    color: #d32f2f;
+    font-weight: bold;
+}
+li.correct {
+    color: #4caf50;
+    font-style: italic;
+}
+h1 {
+    text-align: center;
+}
+#textContainer {
+    padding: 15px;
+    text-align: center;
+}
+#textContainer ul {
+    margin-top: 5px;
+    text-align: left;
+}
+#textContainer .question {
+    font-weight: bold;
+    font-size: 1.1em;
+    text-align: left;
+}
+input[type="button"] {
+    padding: 15px;
+    font-size: 1.5em;
+}
