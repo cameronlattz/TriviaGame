@@ -143,6 +143,7 @@ const app = (function() {
         currentQuestion = 0;
     };
     const startGame = function() {
+        event.preventDefault();
         const questionCount = parseInt(document.getElementById("numberOfQuestions").value);
         const difficulty = document.getElementById("difficulty").value;
         const category = document.getElementById("category").value;
@@ -183,7 +184,7 @@ const app = (function() {
         }
     };
     const init = function() {
-        document.getElementById("startButton").addEventListener("click", startGame);
+        document.getElementById("form").addEventListener("submit", startGame);
         document.querySelectorAll("#answers li").forEach(function(answerElement) {
             answerElement.addEventListener("click", function() {clickAnswer(answerElement)});
         });
