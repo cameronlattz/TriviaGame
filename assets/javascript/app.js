@@ -69,7 +69,7 @@ const app = (function() {
             const containerElement = document.createElement("div");
             const questionElement = document.createElement("div");
             questionElement.classList.add("question");
-            questionElement.innerHTML = questions[i].question;
+            questionElement.innerHTML = (i + 1) + ") " + questions[i].question;
             containerElement.append(questionElement);
             const answersElement = document.createElement("ul");
             for (let j = 0; j < questions[i].answers.length; j++) {
