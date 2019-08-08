@@ -22,7 +22,7 @@ const app = (function() {
         const lis = document.querySelectorAll("#answers li");
         for (let i = 0; i < lis.length; i++) {
             if (lis[i] === answerElement) {
-                questions[currentQuestion].guess = answerElement.innerHTML;
+                questions[currentQuestion].guess = answerElement.textContent;
             }
         }
         clearInterval(timerInterval);
@@ -70,6 +70,14 @@ const app = (function() {
             updateQuestion();
         }
     };
+    // sometimes we get html codes from the api. removing them here
+    const decodeHtml = function(html) {
+        const fakeElement = document.createElement("div");
+        fakeElement.innerHTML = html;
+        let string = fakeElement.textContent;
+        fakeElement.remove();
+        return string;
+    }
     const getQuestions = function(amount, difficulty, category) {
         document.getElementById("loadingContainer").style.display = "block";
         document.getElementById("textContainer").style.display = "none";
@@ -89,13 +97,16 @@ const app = (function() {
             document.getElementById("questionContainer").style.display = "block";
             for (let i = 0; i < responseJson.results.length; i++) {
                 const result = responseJson.results[i];
+                const decodedAnswers = [];
+                result.incorrect_answers.forEach((answer) => decodedAnswers.push(decodeHtml(answer)));
                 const question = {
-                    question: result.question,
-                    correct_answer: result.correct_answer,
-                    incorrect_answers: result.incorrect_answers
+                    question: decodeHtml(result.question),
+                    correct_answer: decodeHtml(result.correct_answer),
+                    incorrect_answers: decodedAnswers
                 };
                 const answers = question.incorrect_answers.slice();
                 answers.push(question.correct_answer);
+                debugger;
                 shuffleArray(answers);
                 question.answers = answers;
                 questions.push(question);
