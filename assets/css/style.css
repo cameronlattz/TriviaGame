@@ -70,15 +70,15 @@ body {
 h1 {
     text-align: center;
 }
-#textContainer {
+#textContainer, #resultsContainer {
     padding: 15px;
     text-align: center;
 }
-#textContainer ul {
+#resultsContainer ul {
     margin-top: 5px;
     text-align: left;
 }
-#textContainer .question {
+#resultsContainer .question {
     font-weight: bold;
     font-size: 1.1em;
     text-align: left;

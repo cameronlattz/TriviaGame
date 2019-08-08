@@ -3,8 +3,7 @@ const app = (function() {
 
     let questions = [];
     let currentQuestion = 0;
-    let timerInterval;
-    let paused = false;
+    let timerInterval = null;
     
     const convertToMinutesAndSeconds = function(timer) {
         minutes = parseInt(timer / 60, 10)
@@ -20,14 +19,13 @@ const app = (function() {
         return [minutes, seconds];
     }
     const clickAnswer = function(answerElement) {
-        paused = true;
+        clearInterval(timerInterval);
         const lis = document.querySelectorAll("#answers li");
         for (let i = 0; i < lis.length; i++) {
             if (lis[i] === answerElement) {
                 questions[currentQuestion].guess = answerElement.textContent;
             }
         }
-        clearInterval(timerInterval);
         displayAnswer();
     };
     // sometimes we get html codes from the api. removing them here
@@ -54,7 +52,7 @@ const app = (function() {
         setTimeout(updateQuestion, 3000);
     }
     const displayResults = function() {
-        document.getElementById("textContainer").style.display = "block";
+        document.getElementById("resultsContainer").style.display = "block";
         document.getElementById("questionContainer").style.display = "none";
         let right = 0;
         for (let i = 0; i < questions.length; i++) {
@@ -62,8 +60,8 @@ const app = (function() {
                 right++;
             }
         }
-        document.getElementById("textContainer").innerHTML = "<h1>You got " + right + " out of " + questions.length + " correct!</h1>";
-        document.getElementById("textContainer").innerHTML += "<h1>" + Math.round(100*right/questions.length) + "%</h1>";
+        document.getElementById("resultsContainer").innerHTML = "<h1>You got " + right + " out of " + questions.length + " correct!</h1>";
+        document.getElementById("resultsContainer").innerHTML += "<h1>" + Math.round(100*right/questions.length) + "%</h1>";
         for (let i = 0; i < questions.length; i++) {
             const containerElement = document.createElement("div");
             const questionElement = document.createElement("div");
@@ -85,15 +83,16 @@ const app = (function() {
                 answersElement.append(answerElement);
             }
             containerElement.append(answersElement);
-            document.getElementById("textContainer").append(containerElement);
+            document.getElementById("resultsContainer").append(containerElement);
         }
-        document.getElementById("textContainer").innerHTML += "<input type=\"button\" id=\"continueButton\" value=\"Try Again?\">";
+        document.getElementById("resultsContainer").innerHTML += "<input type=\"button\" id=\"continueButton\" value=\"Try Again?\">";
         document.getElementById("continueButton").addEventListener("click", function() {
-            location.reload();
+            restartGame();
             document.getElementById("continueButton").remove();
         });
     }
     const getQuestions = function(amount, difficulty, category) {
+        questions = [];
         document.getElementById("loadingContainer").style.display = "block";
         document.getElementById("textContainer").style.display = "none";
         let url = "https://opentdb.com/api.php?amount=" + amount;
@@ -135,29 +134,32 @@ const app = (function() {
             [array[i], array[j]] = [array[j], array[i]];
         }
     };
+    const restartGame = function() {
+        document.getElementById("resultsContainer").style.display = "none";
+        document.getElementById("textContainer").style.display = "block";
+        currentQuestion = 0;
+    };
     const startGame = function() {
         const questionCount = parseInt(document.getElementById("numberOfQuestions").value);
         const difficulty = document.getElementById("difficulty").value;
         const category = document.getElementById("category").value;
         questionDuration = parseInt(document.getElementById("seconds").value);
+        timer = questionDuration;
         getQuestions(questionCount, difficulty, category);
     };
     const startTimer = function(duration) {
         let timer = duration, minutes, seconds;
         document.getElementById("timer").classList.remove("running-out");
         convertToMinutesAndSeconds(questionDuration);
+        clearInterval(timerInterval);
         timerInterval = setInterval(function () {
-            if (!paused) {
-                [minutes, seconds] = convertToMinutesAndSeconds(timer);
-                if (timer === Math.ceil(questionDuration / 4)) {
-                    document.getElementById("timer").classList.add("running-out");
-                }
-                if (--timer < 0) {
-                    timer = duration;
-                    clickAnswer();
-                }
-            } else {
-                timer = questionDuration;
+            [minutes, seconds] = convertToMinutesAndSeconds(timer);
+            if (timer === Math.ceil(questionDuration / 4)) {
+                document.getElementById("timer").classList.add("running-out");
+            }
+            if (--timer < 0) {
+                timer = duration;
+                clickAnswer();
             }
         }, 1000);
     };
@@ -165,7 +167,6 @@ const app = (function() {
         if (currentQuestion === questions.length) {
             displayResults();
         } else {
-            paused = false;
             const question = questions[currentQuestion];
             document.getElementById("question").innerHTML = (currentQuestion + 1) + ") " + question.question;
             correctIndex = question.answers.indexOf(question.correct_answer);
