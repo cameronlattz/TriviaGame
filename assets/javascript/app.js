@@ -19,14 +19,17 @@ const app = (function() {
         return [minutes, seconds];
     }
     const clickAnswer = function(answerElement) {
-        clearInterval(timerInterval);
-        const lis = document.querySelectorAll("#answers li");
-        for (let i = 0; i < lis.length; i++) {
-            if (lis[i] === answerElement) {
-                questions[currentQuestion].guess = answerElement.textContent;
+        if (!timerPaused) {
+            clearInterval(timerInterval);
+            const lis = document.querySelectorAll("#answers li");
+            for (let i = 0; i < lis.length; i++) {
+                if (lis[i] === answerElement) {
+                    questions[currentQuestion].guess = answerElement.textContent;
+                }
             }
+            displayAnswer();
+            timerPaused = true;
         }
-        displayAnswer();
     };
     // sometimes we get html codes from the api. removing them here
     const decodeHtml = function(html) {
@@ -152,6 +155,7 @@ const app = (function() {
         document.getElementById("timer").classList.remove("running-out");
         convertToMinutesAndSeconds(questionDuration);
         clearInterval(timerInterval);
+        timerPaused = false;
         timerInterval = setInterval(function () {
             [minutes, seconds] = convertToMinutesAndSeconds(timer);
             if (timer === Math.ceil(questionDuration / 4)) {
