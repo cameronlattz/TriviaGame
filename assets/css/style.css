@@ -59,11 +59,11 @@ body {
 #questionContainer {
     display: none;
 }
-li.guessed {
+#answers li.guessed, li.guessed {
     color: #d32f2f;
     font-style: italic;
 }
-li.correct {
+#answers li.correct, li.correct {
     color: #4caf50;
     font-weight: bold;
 }
